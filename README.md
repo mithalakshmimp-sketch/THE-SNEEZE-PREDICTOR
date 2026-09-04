@@ -18,44 +18,55 @@
 [its an useless project jsut made to detect , comment and rank sneezing. based on facial expressions and sound]
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+[For centuries, humanity has sneezed in total anonymity. No scores. No rankings. No commentary. People just... sneeze, and life moves on, completely unexamined. Olympic diving has judges. Sneezing has nothing. This ends now.]
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+[uses your webcam and mic to catch a sneeze in the act. It tracks your facial contortion (eyes-squeeze, nose-scrunch, mouth-shape) with computer vision, analyzes the amplitude and "explosiveness" of the sound, and fuses both into a single Sneeze Score™. A live commentary engine then roasts or praises your sneeze in real time ("Ladies and gentlemen, a 9.2 — the nostrils have SPOKEN"), and every sneeze gets logged to a running leaderboard so you can finally prove to your family that your sneeze is objectively superior.]
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
+-Python
+-Streamlit (for the live dashboard UI)
+-OpenCV (webcam capture, video frame handling)
+-MediaPipe Face Mesh (facial landmark tracking — eye closure, nose scrunch, mouth openness)
+-PyAudio + NumPy (real-time microphone amplitude/spike detection)
+-Librosa (audio feature extraction for "explosiveness" scoring)
+-SQLite (leaderboard storage)
+-Pandas (score history and start)
 
 For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+-Laptop/PC webcam
+Built-in or USB microphone
+A functioning nose (required, non-negotiable)
+Tissues (recommended, not included)
+- 
 
 ### Implementation
 For Software:
 # Installation
-[commands]
+git clone https://github.com/yourusername/sneezescope-3000.git
+cd sneezescope-3000
+pip install -r requirements.txt
 
 # Run
-[commands]
+streamlit run app.py
 
 ### Project Documentation
 For Software:
 
 # Screenshots (Add at least 3)
 ![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+*Add caption explaining what this shows*<img width="564" height="658" alt="image" src="https://github.com/user-attachments/assets/85355455-cc1b-4eba-b950-498c72e9f4e1" />
+
 
 ![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+*Add caption explaining what this shows*<img width="557" height="658" alt="image" src="https://github.com/user-attachments/assets/9afc5ed9-6da6-47c5-9473-24cf59138998" />
+
 
 ![Screenshot3](Add screenshot 3 here with proper name)
 *Add caption explaining what this shows*
+<img width="559" height="605" alt="image" src="https://github.com/user-attachments/assets/eb5ec68f-a469-4512-b96f-382d7f6dd1b2" />
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
