@@ -2,20 +2,20 @@
 
 
 
-# [Project Name] 🎯
+#[Onn Thummuvo] 🎯
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: [Slayy]
 
 
 ### Team Members
-- Team Lead: [Name] - [College]
-- Member 2: [Name] - [College]
-- Member 3: [Name] - [College]
+- Team Lead: [Swetha P] - [Jain university Kochi]
+- Member 2: [Mitha Lakshmi] - [Jain university kochi]
+  
 
 ### Project Description
-[2-3 lines about what your project does]
+[its an useless project jsut made to detect , comment and rank sneezing. based on facial expressions and sound]
 
 ### The Problem (that doesn't exist)
 [What ridiculous problem are you solving?]
