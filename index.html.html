@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onnu thummuvo?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #12160f;
+      --bg-panel: #1a2117;
+      --bg-panel-raised: #212b1c;
+      --scan-green: #8bff7a;
+      --scan-green-dim: #4f8f4a;
+      --alert-red: #ff5c48;
+      --warn-amber: #ffb84d;
+      --text-soft: #dbe8d4;
+      --text-dim: #7c8c73;
+      --hairline: #33402c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-void);
+      background-image:
+        radial-gradient(ellipse at 50% -10%, #1c2417 0%, var(--bg-void) 55%);
+      color: var(--text-soft);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 28px 16px 60px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      transform-origin: center center;
+    }
+
+    .app.shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      20% {
+        transform: translate(-4px, 2px) rotate(-0.6deg);
+      }
+
+      40% {
+        transform: translate(3px, -3px) rotate(0.6deg);
+      }
+
+      60% {
+        transform: translate(-3px, 1px) rotate(-0.4deg);
+      }
+
+      80% {
+        transform: translate(3px, 2px) rotate(0.4deg);
+      }
+    }
+
+    header {
+      text-align: left;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--hairline);
+      padding-bottom: 14px;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    header h1 span {
+      color: var(--scan-green);
+    }
+
+    header .unit-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-align: right;
+      line-height: 1.5;
+    }
+
+    .scanner {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--hairline);
+      aspect-ratio: 4/3;
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6);
+    }
+
+    #cam {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.85) contrast(1.05);
+      transform: scaleX(-1);
+    }
+
+    .scanner.idle #cam {
+      opacity: 0.25;
+    }
+
+    .placeholder-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    .scan-sweep {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--scan-green), transparent);
+      opacity: 0.7;
+      top: 0;
+      pointer-events: none;
+      animation: sweep 3.2s linear infinite;
+    }
+
+    .scan-sweep.alert {
+      background: linear-gradient(90deg, transparent, var(--alert-red), transparent);
+      animation-duration: 0.5s;
+    }
+
+    @keyframes sweep {
+      0% {
+        top: 0%;
+      }
+
+      100% {
+        top: 100%;
+      }
+    }
+
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .flash-overlay.go {
+      animation: flash 0.35s ease-out;
+    }
+
+    @keyframes flash {
+      0% {
+        opacity: 0.85;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .waveform-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 64px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+    }
+
+    #waveCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .corner-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px 7px;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+    }
+
+    .corner-tag.live {
+      color: var(--alert-red);
+    }
+
+    .corner-tag .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    #startBtn {
+      flex: 1;
+      background: var(--scan-green);
+      color: #0e1a0c;
+      border: none;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    #startBtn:hover {
+      transform: translateY(-1px);
+    }
+
+    #startBtn:active {
+      transform: translateY(0);
+    }
+
+    #startBtn.stop-mode {
+      background: var(--alert-red);
+      color: #2a0d09;
+    }
+
+    .status-line {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      min-width: 120px;
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    .readout {
+      margin-top: 18px;
+      background: var(--bg-panel);
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .readout.hidden {
+      display: none;
+    }
+
+    .readout-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .rank-label {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.25;
+      max-width: 70%;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 5px;
+      margin-top: 6px;
+      border: 1px solid transparent;
+    }
+
+    .rank-badge.rank-1 {
+      background: rgba(255, 92, 72, 0.15);
+      color: var(--alert-red);
+      border-color: var(--alert-red);
+    }
+
+    .rank-badge.rank-2 {
+      background: rgba(255, 184, 77, 0.15);
+      color: var(--warn-amber);
+      border-color: var(--warn-amber);
+    }
+
+    .rank-badge.rank-3 {
+      background: rgba(139, 255, 122, 0.15);
+      color: var(--scan-green);
+      border-color: var(--scan-green);
+    }
+
+    .score-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--scan-green);
+      text-align: right;
+    }
+
+    .score-num small {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .meter {
+      display: flex;
+      gap: 4px;
+      margin: 14px 0 12px;
+    }
+
+    .meter .seg {
+      flex: 1;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--bg-panel-raised);
+      border: 1px solid var(--hairline);
+    }
+
+    .meter .seg.fill-green {
+      background: var(--scan-green);
+      border-color: var(--scan-green);
+    }
+
+    .meter .seg.fill-amber {
+      background: var(--warn-amber);
+      border-color: var(--warn-amber);
+    }
+
+    .meter .seg.fill-red {
+      background: var(--alert-red);
+      border-color: var(--alert-red);
+    }
+
+    .caption-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+      border-top: 1px dotted var(--hairline);
+      padding-top: 12px;
+      margin-top: 2px;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .stat-box .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .stat-box .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--scan-green);
+    }
+
+    .log-section {
+      margin-top: 22px;
+    }
+
+    .log-section h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dotted var(--hairline);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-thumb {
+      width: 56px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--bg-panel-raised);
+      flex-shrink: 0;
+      transform: scaleX(-1);
+      border: 1px solid var(--hairline);
+    }
+
+    .log-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .log-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .log-rank {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      margin: 2px 0 3px;
+    }
+
+    .log-caption {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    .empty-log {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      padding: 14px 0;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .app.shake {
+        animation: none;
+      }
+
+      .scan-sweep {
+        animation: none;
+      }
+
+      .flash-overlay.go {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app" id="app">
+
+    <header>
+      <h1>Onn thummuvo?</h1>
+      <div class="unit-id">MODEL SN-9<br>ACOUSTIC ARRAY</div>
+    </header>
+
+    <div class="scanner idle" id="scanner">
+      <video id="cam" autoplay muted playsinline></video>
+      <div class="placeholder-text" id="placeholderText">Camera feed will appear here once detection starts.<br>Face the
+        lens and sneeze naturally.</div>
+      <div class="scan-sweep" id="sweep" style="display:none;"></div>
+      <div class="flash-overlay" id="flash"></div>
+      <div class="corner-tag" id="cornerTag" style="display:none;"><span class="dot"></span>SCANNING</div>
+      <div class="waveform-strip" id="waveWrap" style="display:none;">
+        <canvas id="waveCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">Start Detection</button>
+      <div class="status-line" id="statusLine">Standing by</div>
+    </div>
+
+    <div class="readout hidden" id="readout">
+      <div class="readout-top">
+        <div>
+          <div class="rank-label" id="rankLabel">—</div>
+          <div class="rank-badge" id="rankBadge">RANK —</div>
+        </div>
+        <div class="score-num" id="scoreLabel">0<small>/100</small></div>
+      </div>
+      <div class="meter" id="meter"></div>
+      <div class="caption-text" id="captionLabel">—</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="label">SNEEZES LOGGED</div>
+        <div class="value" id="countVal">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">PERSONAL BEST</div>
+        <div class="value" id="bestVal">—</div>
+      </div>
+    </div>
+
+    <div class="log-section">
+      <h2>Incident Log</h2>
+      <div id="logList">
+        <div class="empty-log">No incidents yet. The room is suspiciously calm.</div>
+      </div>
+    </div>
+
+    <footer>
+      Detection runs by listening for a sudden, short acoustic burst — it's a party trick, not a medical device. Loud
+      claps, shouts, or dropped books may confuse it. All audio and video stay on your device.
+    </footer>
+
+  </div>
+
+  <canvas id="snapCanvas" style="display:none;"></canvas>
+
+  <script>
+    (function () {
+      const startBtn = document.getElementById('startBtn');
+      const statusLine = document.getElementById('statusLine');
+      const scanner = document.getElementById('scanner');
+      const camEl = document.getElementById('cam');
+      const placeholderText = document.getElementById('placeholderText');
+      const sweep = document.getElementById('sweep');
+      const flash = document.getElementById('flash');
+      const cornerTag = document.getElementById('cornerTag');
+      const waveWrap = document.getElementById('waveWrap');
+      const waveCanvas = document.getElementById('waveCanvas');
+      const waveCtx = waveCanvas.getContext('2d');
+      const snapCanvas = document.getElementById('snapCanvas');
+      const readout = document.getElementById('readout');
+      const rankLabel = document.getElementById('rankLabel');
+      const rankBadge = document.getElementById('rankBadge');
+      const scoreLabel = document.getElementById('scoreLabel');
+      const meter = document.getElementById('meter');
+      const captionLabel = document.getElementById('captionLabel');
+      const countVal = document.getElementById('countVal');
+      const bestVal = document.getElementById('bestVal');
+      const logList = document.getElementById('logList');
+      const appEl = document.getElementById('app');
+
+      let stream = null;
+      let audioCtx = null;
+      let analyser = null;
+      let dataArray = null;
+      let rafId = null;
+      let running = false;
+
+      let noiseFloor = 0.02;
+      let calibrating = true;
+      let calibrationSamples = [];
+      let calibrationStart = 0;
+
+      let state = 'IDLE'; // IDLE, EVENT, COOLDOWN
+      let eventStart = 0;
+      let eventPeak = 0;
+      let eventPeakTime = 0;
+      let riseCrossTime = 0;
+      let quietSince = 0;
+      let cooldownUntil = 0;
+      let snapshotAtPeak = null;
+
+      let sneezeCount = 0;
+      let personalBest = 0;
+
+      // 3-level sneeze classification system.
+      // Level (and matching Rank) is decided purely by score:
+      //   Level 3 / Rank 3 -> low, soft, whisper-quiet sneeze
+      //   Level 2 / Rank 2 -> average, normal-human sneeze
+      //   Level 1 / Rank 1 -> very high, dramatic, explosive sneeze
+      const TIERS = [
+        {
+          max: 39,
+          level: 3,
+          rank: 3,
+          name: "Whisper Sneeze",
+          comment: "That was so cute, baby kitten 🐱🤧"
+        },
+        {
+          max: 74,
+          level: 2,
+          rank: 2,
+          name: "Normal Human Sneeze",
+          comment: "Hmmmm... normal human.... 😐🤧"
+        },
+        {
+          max: 101,
+          level: 1,
+          rank: 1,
+          name: "Subwoofer Sneeze",
+          comment: "Bless you! I didn't know that your nose had a subwoofer 🔊🤧"
+        }
+      ];
+
+      function pickTier(score) {
+        for (const t of TIERS) { if (score <= t.max) return t; }
+        return TIERS[TIERS.length - 1];
+      }
+
+      function setStatus(text) { statusLine.textContent = text; }
+
+      async function start() {
+        try {
+          setStatus('Requesting camera + mic…');
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+        } catch (err) {
+          setStatus('Permission denied or unavailable');
+          placeholderText.textContent = "Couldn't access camera or microphone. Check your browser permissions and try again.";
+          return;
+        }
+
+        camEl.srcObject = stream;
+        scanner.classList.remove('idle');
+        placeholderText.style.display = 'none';
+        sweep.style.display = 'block';
+        cornerTag.style.display = 'block';
+        waveWrap.style.display = 'block';
+
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.2;
+        source.connect(analyser);
+        dataArray = new Uint8Array(analyser.fftSize);
+
+        calibrating = true;
+        calibrationSamples = [];
+        calibrationStart = performance.now();
+        state = 'IDLE';
+        running = true;
+
+        startBtn.textContent = 'Stop Detection';
+        startBtn.classList.add('stop-mode');
+        setStatus('Calibrating room noise…');
+
+        loop();
+      }
+
+      function stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        if (audioCtx) audioCtx.close();
+        stream = null; audioCtx = null; analyser = null;
+
+        scanner.classList.add('idle');
+        placeholderText.style.display = 'flex';
+        placeholderText.textContent = "Camera feed will appear here once detection starts.\nFace the lens and sneeze naturally.";
+        sweep.style.display = 'none';
+        cornerTag.style.display = 'none';
+        waveWrap.style.display = 'none';
+
+        startBtn.textContent = 'Start Detection';
+        startBtn.classList.remove('stop-mode');
+        setStatus('Standing by');
+      }
+
+      function getRMS() {
+        analyser.getByteTimeDomainData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const v = (dataArray[i] - 128) / 128;
+          sum += v * v;
+        }
+        return Math.sqrt(sum / dataArray.length);
+      }
+
+      function drawWave(rms, alertMode) {
+        const w = waveCanvas.width = waveCanvas.clientWidth * devicePixelRatio;
+        const h = waveCanvas.height = waveCanvas.clientHeight * devicePixelRatio;
+        // shift existing image left
+        const img = waveCtx.getImageData(2, 0, w - 2, h);
+        waveCtx.clearRect(0, 0, w, h);
+        waveCtx.putImageData(img, 0, 0);
+
+        const barH = Math.min(h, rms * h * 6);
+        waveCtx.fillStyle = alertMode ? '#ff5c48' : '#8bff7a';
+        waveCtx.globalAlpha = 0.9;
+        waveCtx.fillRect(w - 2, h - barH, 2, barH);
+      }
+
+      function takeSnapshot() {
+        try {
+          const w = 160, h = 120;
+          snapCanvas.width = w; snapCanvas.height = h;
+          const ctx = snapCanvas.getContext('2d');
+          ctx.drawImage(camEl, 0, 0, w, h);
+          return snapCanvas.toDataURL('image/jpeg', 0.7);
+        } catch (e) { return null; }
+      }
+
+      function finalizeEvent(now) {
+        const duration = now - eventStart;
+        const riseDuration = Math.max(20, riseCrossTime - eventStart);
+        const peakNorm = Math.max(0, Math.min(1, (eventPeak - noiseFloor) / Math.max(0.05, 0.9 - noiseFloor)));
+        const explosiveness = Math.max(0, Math.min(1, 1 - (riseDuration / 350)));
+        let score = Math.round((peakNorm * 0.72 + explosiveness * 0.28) * 100);
+        score = Math.max(3, Math.min(100, score));
+
+        const tier = pickTier(score);
+        const caption = tier.comment;
+
+        logSneeze(score, tier, caption, snapshotAtPeak);
+
+        state = 'COOLDOWN';
+        cooldownUntil = now + 900;
+      }
+
+      function renderMeter(score) {
+        meter.innerHTML = '';
+        const totalSegs = 10;
+        const filled = Math.round((score / 100) * totalSegs);
+        for (let i = 0; i < totalSegs; i++) {
+          const seg = document.createElement('div');
+          seg.className = 'seg';
+          if (i < filled) {
+            if (score >= 75) seg.classList.add('fill-red');
+            else if (score >= 40) seg.classList.add('fill-amber');
+            else seg.classList.add('fill-green');
+          }
+          meter.appendChild(seg);
+        }
+      }
+
+      function logSneeze(score, tier, caption, thumb) {
+        sneezeCount++;
+        countVal.textContent = sneezeCount;
+        if (score > personalBest) {
+          personalBest = score;
+          bestVal.textContent = personalBest + ' — ' + pickTier(personalBest).name;
+        }
+
+        readout.classList.remove('hidden');
+        rankLabel.textContent = tier.name;
+        rankBadge.textContent = 'RANK ' + tier.rank + ' · LEVEL ' + tier.level;
+        rankBadge.className = 'rank-badge rank-' + tier.rank;
+        scoreLabel.innerHTML = score + '<small>/100</small>';
+        captionLabel.textContent = caption;
+        renderMeter(score);
+
+        flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+        appEl.classList.remove('shake'); void appEl.offsetWidth; appEl.classList.add('shake');
+
+        if (logList.querySelector('.empty-log')) logList.innerHTML = '';
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        entry.innerHTML = `
+      ${thumb ? `<img class="log-thumb" src="${thumb}" alt="">` : `<div class="log-thumb"></div>`}
+      <div class="log-body">
+        <div class="log-top"><span>${time}</span><span>${score}/100</span></div>
+        <div class="log-rank">${tier.name} <span class="rank-badge rank-${tier.rank}" style="margin:0 0 0 6px; padding:1px 6px;">RANK ${tier.rank}</span></div>
+        <div class="log-caption">${caption}</div>
+      </div>
+    `;
+        logList.prepend(entry);
+      }
+
+      function loop() {
+        if (!running) return;
+        rafId = requestAnimationFrame(loop);
+        const now = performance.now();
+        const rms = getRMS();
+
+        if (calibrating) {
+          calibrationSamples.push(rms);
+          drawWave(rms, false);
+          if (now - calibrationStart > 1400) {
+            calibrating = false;
+            const avg = calibrationSamples.reduce((a, b) => a + b, 0) / Math.max(1, calibrationSamples.length);
+            noiseFloor = Math.max(0.015, avg);
+            setStatus('Scanning for sneezes…');
+          }
+          return;
+        }
+
+        const threshold = noiseFloor + 0.09;
+        const lowThreshold = noiseFloor + 0.035;
+
+        if (state === 'IDLE') {
+          drawWave(rms, false);
+          // slow adaptive noise floor so room settling doesn't cause false positives
+          if (rms < noiseFloor) noiseFloor = noiseFloor * 0.98 + rms * 0.02;
+
+          if (rms > threshold) {
+            state = 'EVENT';
+            eventStart = now;
+            riseCrossTime = now;
+            eventPeak = rms;
+            eventPeakTime = now;
+            quietSince = 0;
+            snapshotAtPeak = takeSnapshot();
+            sweep.classList.add('alert');
+            cornerTag.style.color = '';
+          }
+        } else if (state === 'EVENT') {
+          drawWave(rms, true);
+          if (rms > eventPeak) {
+            eventPeak = rms;
+            eventPeakTime = now;
+            snapshotAtPeak = takeSnapshot();
+          }
+          if (rms < lowThreshold) {
+            if (!quietSince) quietSince = now;
+            if (now - quietSince > 140) {
+              finalizeEvent(now);
+            }
+          } else {
+            quietSince = 0;
+          }
+          if (now - eventStart > 1300) {
+            finalizeEvent(now);
+          }
+        } else if (state === 'COOLDOWN') {
+          drawWave(rms, true);
+          if (now > cooldownUntil) {
+            state = 'IDLE';
+            sweep.classList.remove('alert');
+          }
+        }
+      }
+
+      startBtn.addEventListener('click', function () {
+        if (running) stop(); else start();
+      });
+    })();
+  </script>
+
+</body>
+
+</html>
