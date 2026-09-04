@@ -6,12 +6,12 @@
 
 
 ## Basic Details
-### Team Name: [Slayy]
+### Team Name: [Slayyy]
 
 
 ### Team Members
 - Team Lead: [Swetha P] - [Jain university Kochi]
-- Member 2: [Mitha Lakshmi] - [Jain university kochi]
+- Member 2: [Mitha Lakshmi MP] - [Jain university kochi]
   
 
 ### Project Description
